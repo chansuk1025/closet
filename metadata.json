@@ -1,0 +1,6 @@
+{
+  "name": "아틀리에 클로젯 (Atelier Closet)",
+  "description": "스케치북 & 우드 감성의 스마트 옷장, 날씨·상황별 AI 데일리 코디, 퍼스널컬러 진단 및 직구매 스마트 쇼핑 플랫폼",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
