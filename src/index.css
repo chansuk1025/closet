@@ -2,51 +2,68 @@
 
 @layer base {
   :root {
-    --font-serif: 'Gowun Batang', serif;
-    --font-sans: 'Pretendard', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    --font-main: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
   }
 
   body {
-    font-family: var(--font-sans);
-    background-color: #F7F5EE;
+    font-family: var(--font-main);
+    background-color: #F8F6F1;
     color: #2D251E;
     overflow-x: hidden;
+    letter-spacing: -0.01em;
   }
 
-  h1, h2, h3, .font-serif-title {
-    font-family: var(--font-serif);
+  h1, h2, h3, h4, h5, h6, button, input, select, textarea {
+    font-family: var(--font-main);
+    letter-spacing: -0.015em;
   }
 }
 
-/* Sketchbook paper and artisanal wood textures */
-.bg-sketch-paper {
-  background-color: #FAF8F2;
-  background-image: radial-gradient(#E5DEC9 0.75px, transparent 0.75px);
-  background-size: 16px 16px;
+/* Diary Planner Paper Texture */
+.diary-page-bg {
+  background-color: #FAF8F4;
+  background-image: radial-gradient(#E8E2D8 1px, transparent 1px);
+  background-size: 20px 20px;
 }
 
-.bg-kraft-card {
-  background-color: #F4EFE6;
-  border: 1px solid #E3D9C9;
+/* Subtle masking tape decoration (다꾸 마스킹 테이프) */
+.washi-tape {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-0.5deg);
+  width: 64px;
+  height: 18px;
+  background-color: rgba(235, 225, 208, 0.85);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  clip-path: polygon(0% 10%, 4% 0%, 96% 0%, 100% 10%, 97% 90%, 100% 100%, 4% 100%, 0% 90%);
+  z-index: 10;
 }
 
-.wood-accent-gradient {
-  background: linear-gradient(135deg, #4A3B32 0%, #352822 100%);
+/* Aesthetic Planner Card (다이어리 속 기록 카드) */
+.planner-card {
+  background: #FFFFFF;
+  border: 1px solid #EAE3D7;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px -2px rgba(45, 36, 28, 0.05), 0 1px 3px rgba(45, 36, 28, 0.03);
 }
 
-.sketch-border {
-  border: 1.5px dashed #C8B9A6;
+/* Modern Minimalist Clothes Rack (미니멀 행거 봉) */
+.clothes-rack-bar {
+  background: linear-gradient(180deg, #D4C9BA 0%, #AFA292 50%, #8C7F70 100%);
+  box-shadow: 0 3px 6px rgba(50, 40, 30, 0.12);
 }
 
-.sketch-border-solid {
-  border: 1px solid #DFD5C5;
+/* Hanging garment swing on hover */
+.hanger-garment-item {
+  transform-origin: top center;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
 }
 
-.pencil-shadow {
-  box-shadow: 0 4px 16px -2px rgba(60, 48, 38, 0.07), 0 2px 4px -1px rgba(60, 48, 38, 0.04);
+.hanger-garment-item:hover {
+  transform: translateY(-2px);
 }
 
-.wood-tab-active {
-  background-color: #382A21;
-  color: #FAF6F0;
+.hanger-garment-selected {
+  transform: translateY(-4px);
 }

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { BodyType, ClosetItem, FashionStyle, OrderItem, PersonalColor, StoreItem, UserProfile } from '../types';
-import { User, Package, Heart, BarChart3, ShieldCheck, Check, Truck, LogOut, Sparkles, Edit2 } from 'lucide-react';
+import { User, Package, Heart, Check, Truck, LogOut, Edit2 } from 'lucide-react';
 
 interface MyPageProps {
   user: UserProfile;
@@ -19,17 +19,14 @@ export const MyPage: React.FC<MyPageProps> = ({
   orders,
   favorites,
   storeItems,
-  closetItems,
   onLogout,
   onGoToShopping,
 }) => {
-  const [activeSubTab, setActiveSubTab] = useState<'profile' | 'orders' | 'favorites' | 'stats'>('orders');
+  const [activeSubTab, setActiveSubTab] = useState<'orders' | 'favorites' | 'profile'>('orders');
 
   // Profile form local state
-  const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [name, setName] = useState(user.name);
   const [height, setHeight] = useState(user.height);
-  const [weight, setWeight] = useState(user.weight || 68);
   const [bodyType, setBodyType] = useState<BodyType>(user.bodyType);
   const [personalColor, setPersonalColor] = useState<PersonalColor>(user.personalColor);
   const [preferredStyles, setPreferredStyles] = useState<FashionStyle[]>(user.preferredStyles);
@@ -64,12 +61,10 @@ export const MyPage: React.FC<MyPageProps> = ({
       ...user,
       name,
       height: Number(height),
-      weight: Number(weight),
       bodyType,
       personalColor,
       preferredStyles,
     });
-    setIsEditingProfile(false);
     setSaveSuccessNotice(true);
     setTimeout(() => setSaveSuccessNotice(false), 3000);
   };
@@ -82,18 +77,18 @@ export const MyPage: React.FC<MyPageProps> = ({
       <section className="bg-[#FAF5EC] rounded-2xl border border-[#DECFC0] p-6 sm:p-8 pencil-shadow">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-[#3E2F24] text-[#FAF6F0] flex items-center justify-center font-serif text-2xl font-bold shadow-sm">
+            <div className="w-14 h-14 rounded-2xl bg-[#3E2F24] text-[#FAF6F0] flex items-center justify-center font-serif text-2xl font-bold shadow-sm">
               {user.name.slice(0, 1)}
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-serif font-bold text-[#2A1F18]">{user.name}</h1>
                 <span className="text-xs bg-[#EAE0D1] text-[#443327] px-2.5 py-0.5 rounded-full font-medium border border-[#D5C6B5]">
-                  학생 멤버십
+                  회원
                 </span>
               </div>
               <p className="text-xs text-[#7A6350] mt-0.5">{user.email}</p>
-              <div className="flex flex-wrap items-center gap-2 text-xs text-[#8C6D53] mt-2">
+              <div className="flex flex-wrap items-center gap-2 text-xs text-[#8C6D53] mt-1.5">
                 <span>{user.height}cm</span>
                 <span>·</span>
                 <span>{user.bodyType}</span>
@@ -105,14 +100,11 @@ export const MyPage: React.FC<MyPageProps> = ({
 
           <div className="flex items-center gap-2">
             <button
-              onClick={() => {
-                setActiveSubTab('profile');
-                setIsEditingProfile(true);
-              }}
+              onClick={() => setActiveSubTab('profile')}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-[#EAE1D3] hover:bg-[#DDD2C2] text-[#443327] rounded-xl text-xs font-semibold border border-[#CFBFAC] transition-colors"
             >
               <Edit2 className="w-3.5 h-3.5" />
-              <span>프로필 수정</span>
+              <span>개인 정보 설정</span>
             </button>
             <button
               onClick={onLogout}
@@ -127,12 +119,12 @@ export const MyPage: React.FC<MyPageProps> = ({
         {saveSuccessNotice && (
           <div className="mt-4 p-3 bg-[#E5F3E7] text-[#2F6136] rounded-xl border border-[#C3E4C8] text-xs flex items-center gap-2">
             <Check className="w-4 h-4" />
-            <span>신체 정보 및 스타일 프로필이 성공적으로 저장되었습니다.</span>
+            <span>신체 정보 및 스타일 설정이 성공적으로 저장되었습니다.</span>
           </div>
         )}
       </section>
 
-      {/* Sub Tabs */}
+      {/* Sub Tabs: Only User's Requested Features */}
       <div className="flex items-center gap-2 border-b border-[#DECFC0] pb-2 text-xs sm:text-sm font-medium">
         <button
           onClick={() => setActiveSubTab('orders')}
@@ -143,7 +135,7 @@ export const MyPage: React.FC<MyPageProps> = ({
           }`}
         >
           <Package className="w-4 h-4" />
-          <span>구매 및 배송 내역 ({orders.length})</span>
+          <span>구매 내역 및 배송 추적 ({orders.length})</span>
         </button>
 
         <button
@@ -167,19 +159,7 @@ export const MyPage: React.FC<MyPageProps> = ({
           }`}
         >
           <User className="w-4 h-4" />
-          <span>신체 및 스타일 설정</span>
-        </button>
-
-        <button
-          onClick={() => setActiveSubTab('stats')}
-          className={`flex items-center gap-1.5 px-4 py-2 rounded-xl transition-all ${
-            activeSubTab === 'stats'
-              ? 'bg-[#382A21] text-[#FAF6F0] font-semibold shadow-sm'
-              : 'text-[#6B5747] hover:bg-[#EFE8DC]'
-          }`}
-        >
-          <BarChart3 className="w-4 h-4" />
-          <span>옷장 통계</span>
+          <span>개인 신체 & 스타일 설정</span>
         </button>
       </div>
 
@@ -188,9 +168,9 @@ export const MyPage: React.FC<MyPageProps> = ({
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-serif font-bold text-[#2A1F18]">
-              스마트 쇼핑 구매 내역 ({orders.length}건)
+              구매 내역 및 배송 추적 ({orders.length}건)
             </h2>
-            <span className="text-xs text-[#7A6350]">AI 본사 직발주 실시간 연동</span>
+            <span className="text-xs text-[#7A6350]">AI 본사 직발주 및 재고 연동</span>
           </div>
 
           {orders.length === 0 ? (
@@ -200,7 +180,7 @@ export const MyPage: React.FC<MyPageProps> = ({
                 아직 구매한 내역이 없습니다
               </h4>
               <p className="text-xs text-[#7A6350] max-w-sm mx-auto">
-                스마트 쇼핑에서 내 옷장과 찰떡인 의류를 AI 본사 직발주로 편리하게 주문해보세요.
+                스마트 쇼핑에서 원하는 옷을 직접 주문해보세요.
               </p>
               <button
                 onClick={onGoToShopping}
@@ -223,11 +203,9 @@ export const MyPage: React.FC<MyPageProps> = ({
                       <span className="text-[#8C6D53]">{order.createdAt.slice(0, 10)}</span>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#E7F3E9] text-[#2F6136] border border-[#C2E3C7]">
-                        AI 본사 직발주 완료
-                      </span>
-                    </div>
+                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#E7F3E9] text-[#2F6136] border border-[#C2E3C7]">
+                      AI 본사 직발주 완료
+                    </span>
                   </div>
 
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -236,22 +214,22 @@ export const MyPage: React.FC<MyPageProps> = ({
                         src={order.item.image}
                         alt={order.item.title}
                         referrerPolicy="no-referrer"
-                        className="w-16 h-16 object-cover rounded-xl border border-[#DFD3C2]"
+                        className="w-14 h-14 object-contain bg-white rounded-xl p-1 border border-[#DFD3C2]"
                       />
-                      <div className="space-y-1">
+                      <div className="space-y-0.5">
                         <span className="text-[11px] font-semibold text-[#8C6D53]">
                           {order.item.brand}
                         </span>
                         <h4 className="text-sm font-bold text-[#2A1F18]">{order.item.title}</h4>
                         <div className="text-xs text-[#6B5747]">
-                          옵션: {order.item.size} / {order.item.color} · 수량 {order.quantity}개
+                          옵션: {order.item.size} / {order.item.color} · {order.quantity}개
                         </div>
                       </div>
                     </div>
 
                     <div className="text-right sm:border-l sm:border-[#F0E6D8] sm:pl-6 space-y-1">
                       <div className="text-xs text-[#8C6D53]">결제 금액 (수수료 4.5% 포함)</div>
-                      <div className="text-lg font-bold text-[#2A1F18] font-mono tabular-nums">
+                      <div className="text-base font-bold text-[#2A1F18] font-mono tabular-nums">
                         {order.payment.totalPrice.toLocaleString()}원
                       </div>
                       <button
@@ -296,30 +274,30 @@ export const MyPage: React.FC<MyPageProps> = ({
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {favoriteProducts.map((prod) => (
-                <div
-                  key={prod.id}
-                  className="bg-white rounded-2xl border border-[#DFD3C3] overflow-hidden pencil-shadow flex flex-col justify-between"
-                >
-                  <div className="relative aspect-4/3 bg-[#F4EFE6]">
-                    <img
-                      src={prod.image}
-                      alt={prod.title}
-                      referrerPolicy="no-referrer"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="p-4 space-y-2">
-                    <span className="text-[11px] font-semibold text-[#8C6D53]">{prod.brand}</span>
-                    <h4 className="text-sm font-bold text-[#2A1F18] leading-tight">{prod.title}</h4>
-                    <p className="text-base font-mono font-bold text-[#2A1F18]">
-                      {prod.price.toLocaleString()}원
-                    </p>
-                    <button
-                      onClick={onGoToShopping}
-                      className="w-full py-2 bg-[#382A21] hover:bg-[#251B15] text-[#FAF6F0] rounded-xl text-xs font-semibold transition-colors mt-2"
-                    >
-                      쇼핑에서 구매하기
-                    </button>
+                <div key={prod.id} className="sticker-outline-slot">
+                  <div className="sticker-item-card flex flex-col justify-between h-full">
+                    <div className="sticker-peel-cue" />
+                    <div className="relative aspect-4/3 bg-white p-3 flex items-center justify-center rounded-t-[16px]">
+                      <img
+                        src={prod.image}
+                        alt={prod.title}
+                        referrerPolicy="no-referrer"
+                        className="max-h-full max-w-full object-contain filter drop-shadow-[0_4px_6px_rgba(0,0,0,0.12)]"
+                      />
+                    </div>
+                    <div className="p-4 space-y-2 border-t border-[#F5EFE8]">
+                      <span className="text-[11px] font-semibold text-[#8C6D53]">{prod.brand}</span>
+                      <h4 className="text-sm font-bold text-[#2A1F18] leading-tight">{prod.title}</h4>
+                      <p className="text-base font-mono font-bold text-[#2A1F18]">
+                        {prod.price.toLocaleString()}원
+                      </p>
+                      <button
+                        onClick={onGoToShopping}
+                        className="w-full py-2 bg-[#382A21] hover:bg-[#201712] text-[#FAF6F0] rounded-xl text-xs font-semibold transition-colors mt-2"
+                      >
+                        쇼핑에서 구매하기
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -328,23 +306,23 @@ export const MyPage: React.FC<MyPageProps> = ({
         </section>
       )}
 
-      {/* Tab 3: Body & Style Profile Form (Musinsa style membership) */}
+      {/* Tab 3: Personal Body & Style Settings (Musinsa style) */}
       {activeSubTab === 'profile' && (
         <section className="bg-white rounded-2xl border border-[#DFD3C3] p-6 sm:p-8 pencil-shadow space-y-6">
           <div className="border-b border-[#F0E6D8] pb-4">
             <span className="text-xs font-bold uppercase tracking-wider text-[#8C6D53]">
-              Personal Fashion Profile
+              Style Profile
             </span>
             <h2 className="text-xl font-serif font-bold text-[#2A1F18]">
               개인 맞춤 신체 정보 및 스타일 설정
             </h2>
             <p className="text-xs text-[#7A6350] mt-1">
-              무신사 및 전문 퍼스널 컬러 진단 기준을 반영하여 AI가 체형과 피부색에 최적화된 추천을 제공합니다.
+              키, 체형, 피부색, 선호하는 옷스타일을 설정해 AI 추천과 코디에 반영합니다.
             </p>
           </div>
 
-          <form onSubmit={handleSaveProfile} className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <form onSubmit={handleSaveProfile} className="space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-bold text-[#443327] block mb-1">이름</label>
                 <input
@@ -366,52 +344,42 @@ export const MyPage: React.FC<MyPageProps> = ({
                   required
                 />
               </div>
-
-              <div>
-                <label className="text-xs font-bold text-[#443327] block mb-1">몸무게 (kg)</label>
-                <input
-                  type="number"
-                  value={weight}
-                  onChange={(e) => setWeight(Number(e.target.value))}
-                  className="w-full p-2.5 bg-[#FAF7F2] border border-[#D5C6B5] rounded-xl text-xs text-[#2A1F18]"
-                />
-              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-xs font-bold text-[#443327] block mb-1">체형 유형 (Body Type)</label>
+                <label className="text-xs font-bold text-[#443327] block mb-1">체형 유형</label>
                 <select
                   value={bodyType}
                   onChange={(e) => setBodyType(e.target.value as BodyType)}
                   className="w-full p-2.5 bg-[#FAF7F2] border border-[#D5C6B5] rounded-xl text-xs text-[#2A1F18]"
                 >
-                  <option value="직사각형 (슬림/보통)">직사각형 (슬림/보통 - 직선적 실루엣)</option>
-                  <option value="역삼각형 (어깨 발달)">역삼각형 (어깨 및 상체 발달형)</option>
-                  <option value="삼각형 (하체 중심)">삼각형 (하체 및 힙 중심형)</option>
-                  <option value="웨이브 (부드러운 곡선)">웨이브 (부드러운 곡선 라인)</option>
-                  <option value="스트레이트 (균형 체형)">스트레이트 (입체적 균형 체형)</option>
+                  <option value="직사각형 (슬림/보통)">직사각형 (슬림/보통)</option>
+                  <option value="역삼각형 (어깨 발달)">역삼각형 (어깨 발달)</option>
+                  <option value="삼각형 (하체 중심)">삼각형 (하체 중심)</option>
+                  <option value="웨이브 (부드러운 곡선)">웨이브 (부드러운 곡선)</option>
+                  <option value="스트레이트 (균형 체형)">스트레이트 (균형 체형)</option>
                 </select>
               </div>
 
               <div>
-                <label className="text-xs font-bold text-[#443327] block mb-1">피부색 & 퍼스널 컬러</label>
+                <label className="text-xs font-bold text-[#443327] block mb-1">피부색 / 퍼스널 컬러</label>
                 <select
                   value={personalColor}
                   onChange={(e) => setPersonalColor(e.target.value as PersonalColor)}
                   className="w-full p-2.5 bg-[#FAF7F2] border border-[#D5C6B5] rounded-xl text-xs text-[#2A1F18]"
                 >
-                  <option value="봄 웜톤">봄 웜톤 (Spring Warm - 밝고 따뜻한 톤)</option>
-                  <option value="여름 쿨톤">여름 쿨톤 (Summer Cool - 맑고 청량한 톤)</option>
-                  <option value="가을 웜톤">가을 웜톤 (Autumn Warm - 그윽하고 포근한 톤)</option>
-                  <option value="겨울 쿨톤">겨울 쿨톤 (Winter Cool - 선명하고 시크한 톤)</option>
+                  <option value="봄 웜톤">봄 웜톤 (밝고 따뜻함)</option>
+                  <option value="여름 쿨톤">여름 쿨톤 (맑고 청량함)</option>
+                  <option value="가을 웜톤">가을 웜톤 (차분하고 포근함)</option>
+                  <option value="겨울 쿨톤">겨울 쿨톤 (선명하고 시크함)</option>
                 </select>
               </div>
             </div>
 
             <div>
               <label className="text-xs font-bold text-[#443327] block mb-2">
-                추구하는 패션 스타일 (다중 선택 가능)
+                추구하는 옷스타일 (다중 선택)
               </label>
               <div className="flex flex-wrap gap-2">
                 {availableStyles.map((style) => {
@@ -436,7 +404,7 @@ export const MyPage: React.FC<MyPageProps> = ({
 
             <button
               type="submit"
-              className="py-3 px-6 bg-[#382A21] hover:bg-[#251B15] text-[#FAF6F0] rounded-xl text-xs font-semibold shadow-sm transition-colors"
+              className="py-2.5 px-6 bg-[#382A21] hover:bg-[#201712] text-[#FAF6F0] rounded-xl text-xs font-semibold shadow-sm transition-colors"
             >
               설정 저장하기
             </button>
@@ -444,54 +412,10 @@ export const MyPage: React.FC<MyPageProps> = ({
         </section>
       )}
 
-      {/* Tab 4: Wardrobe Statistics */}
-      {activeSubTab === 'stats' && (
-        <section className="bg-white rounded-2xl border border-[#DFD3C3] p-6 sm:p-8 pencil-shadow space-y-6">
-          <div className="border-b border-[#F0E6D8] pb-4">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#8C6D53]">
-              Closet Intelligence
-            </span>
-            <h2 className="text-xl font-serif font-bold text-[#2A1F18]">
-              스마트 옷장 통계 및 자산 가치
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="p-4 bg-[#FAF7F2] rounded-xl border border-[#DFD3C2] text-center space-y-1">
-              <span className="text-xs text-[#8C6D53]">보유 의류 수</span>
-              <div className="text-2xl font-serif font-bold text-[#2A1F18]">
-                {closetItems.length}벌
-              </div>
-            </div>
-
-            <div className="p-4 bg-[#FAF7F2] rounded-xl border border-[#DFD3C2] text-center space-y-1">
-              <span className="text-xs text-[#8C6D53]">퍼스널컬러 일치율</span>
-              <div className="text-2xl font-serif font-bold text-[#3D7847]">
-                94%
-              </div>
-            </div>
-
-            <div className="p-4 bg-[#FAF7F2] rounded-xl border border-[#DFD3C2] text-center space-y-1">
-              <span className="text-xs text-[#8C6D53]">최다 보유 카테고리</span>
-              <div className="text-2xl font-serif font-bold text-[#2A1F18]">
-                상의 (45%)
-              </div>
-            </div>
-
-            <div className="p-4 bg-[#FAF7F2] rounded-xl border border-[#DFD3C2] text-center space-y-1">
-              <span className="text-xs text-[#8C6D53]">추천 쇼핑 보강군</span>
-              <div className="text-2xl font-serif font-bold text-[#A87A40]">
-                니트/슬랙스
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-
       {/* Tracking Modal */}
       {selectedOrderForTracking && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#FAF8F3] rounded-2xl border border-[#DECFC0] max-w-lg w-full p-6 pencil-shadow space-y-6">
+          <div className="bg-[#FAF8F3] rounded-2xl border border-[#DECFC0] max-w-lg w-full p-6 pencil-shadow space-y-5">
             <div className="flex items-start justify-between border-b border-[#E8DDCE] pb-3">
               <div>
                 <span className="text-[11px] font-mono text-[#8C6D53]">
@@ -514,7 +438,7 @@ export const MyPage: React.FC<MyPageProps> = ({
                 src={selectedOrderForTracking.item.image}
                 alt={selectedOrderForTracking.item.title}
                 referrerPolicy="no-referrer"
-                className="w-12 h-12 object-cover rounded-lg border border-[#D5C6B5]"
+                className="w-12 h-12 object-contain bg-white rounded-lg p-1 border border-[#D5C6B5]"
               />
               <div className="overflow-hidden">
                 <div className="text-xs font-bold text-[#2A1F18] truncate">

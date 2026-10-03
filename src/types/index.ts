@@ -14,9 +14,7 @@ export interface ClosetItem {
   brand?: string;
   imageUrl: string;
   addedAt: string;
-  wearCount: number;
-  notes?: string;
-  matchingScoreWithUser?: number;
+  memo?: string;
 }
 
 export interface StoreItem {
@@ -24,7 +22,6 @@ export interface StoreItem {
   title: string;
   brand: string;
   price: number;
-  originalPrice?: number;
   category: GarmentCategory;
   style: FashionStyle;
   personalColorMatch: PersonalColor[];
@@ -32,11 +29,8 @@ export interface StoreItem {
   stockCount: number;
   sizes: string[];
   colors: string[];
-  description: string;
   wardrobeSynergy: {
-    recommendedWithClosetId?: string;
     synergyReason: string;
-    synergyScore: number;
   };
 }
 
@@ -99,11 +93,9 @@ export interface DailyOutfitRecommendation {
   outerItem?: string;
   shoesAndAccessories?: string;
   coordinatorTip: string;
-  synergyScore: number;
 }
 
 export interface PhotoAnalysisResult {
-  harmonyScore: number;
   personalColorVerdict: string;
   bodyTypeAdvice: string;
   recommendedCombinations: Array<{
@@ -112,5 +104,4 @@ export interface PhotoAnalysisResult {
   }>;
   dominantColor: string;
   stylingKeywords: string[];
-  overallComment: string;
 }

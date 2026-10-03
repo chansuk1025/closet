@@ -1,6 +1,6 @@
 import React from 'react';
 import { UserProfile } from '../types';
-import { Sparkles, Plus, ShoppingBag, User } from 'lucide-react';
+import { Sparkles, Plus, User } from 'lucide-react';
 
 interface HeaderProps {
   activeTab: 'closet' | 'shopping' | 'coordinator' | 'mypage';
@@ -17,83 +17,82 @@ export const Header: React.FC<HeaderProps> = ({
   user,
   onOpenAddModal,
   onOpenAuthModal,
-  cartCount,
 }) => {
   return (
-    <header className="sticky top-0 z-40 bg-[#FAF8F3]/95 backdrop-blur-md border-b border-[#E6DDCE]">
+    <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-[#EAE3D7] shadow-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-        {/* Zone 1: Single text element Brand Title */}
+        {/* Brand Title */}
         <button
           onClick={() => setActiveTab('closet')}
-          className="text-left group cursor-pointer focus:outline-none"
+          className="text-left cursor-pointer focus:outline-none flex items-center gap-2"
         >
-          <span className="text-xl sm:text-2xl font-serif font-bold tracking-tight text-[#2D241E] group-hover:text-[#634832] transition-colors">
-            ATELIER CLOSET
+          <span className="text-xl sm:text-2xl font-bold tracking-tight text-[#2C241E] lowercase">
+            closet
           </span>
         </button>
 
-        {/* Zone 2: 4 clean text navigation links with active state */}
-        <nav className="flex items-center gap-1 sm:gap-2 md:gap-6 text-sm font-medium">
+        {/* Navigation links */}
+        <nav className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm font-semibold">
           <button
             onClick={() => setActiveTab('closet')}
-            className={`px-3 py-1.5 rounded-md transition-all whitespace-nowrap ${
+            className={`px-3 py-1.5 rounded-xl transition-all whitespace-nowrap ${
               activeTab === 'closet'
-                ? 'bg-[#382A21] text-[#FAF6F0] shadow-sm font-semibold'
-                : 'text-[#5C4A3C] hover:text-[#2D241E] hover:bg-[#EFE8DC]'
+                ? 'bg-[#3B2F25] text-white shadow-xs'
+                : 'text-[#6E6053] hover:text-[#2C241E] hover:bg-[#F5F2EB]'
             }`}
           >
             스마트 옷장
           </button>
           <button
             onClick={() => setActiveTab('shopping')}
-            className={`px-3 py-1.5 rounded-md transition-all whitespace-nowrap ${
+            className={`px-3 py-1.5 rounded-xl transition-all whitespace-nowrap ${
               activeTab === 'shopping'
-                ? 'bg-[#382A21] text-[#FAF6F0] shadow-sm font-semibold'
-                : 'text-[#5C4A3C] hover:text-[#2D241E] hover:bg-[#EFE8DC]'
+                ? 'bg-[#3B2F25] text-white shadow-xs'
+                : 'text-[#6E6053] hover:text-[#2C241E] hover:bg-[#F5F2EB]'
             }`}
           >
             스마트 쇼핑
           </button>
           <button
             onClick={() => setActiveTab('coordinator')}
-            className={`px-3 py-1.5 rounded-md transition-all whitespace-nowrap flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-xl transition-all whitespace-nowrap flex items-center gap-1 ${
               activeTab === 'coordinator'
-                ? 'bg-[#382A21] text-[#FAF6F0] shadow-sm font-semibold'
-                : 'text-[#5C4A3C] hover:text-[#2D241E] hover:bg-[#EFE8DC]'
+                ? 'bg-[#3B2F25] text-white shadow-xs'
+                : 'text-[#6E6053] hover:text-[#2C241E] hover:bg-[#F5F2EB]'
             }`}
           >
-            <Sparkles className="w-3.5 h-3.5 text-[#B88746]" />
-            패션 코디네이터
+            <Sparkles className="w-3.5 h-3.5 text-[#C49A58]" />
+            코디네이터
           </button>
           <button
             onClick={() => setActiveTab('mypage')}
-            className={`px-3 py-1.5 rounded-md transition-all whitespace-nowrap ${
+            className={`px-3 py-1.5 rounded-xl transition-all whitespace-nowrap ${
               activeTab === 'mypage'
-                ? 'bg-[#382A21] text-[#FAF6F0] shadow-sm font-semibold'
-                : 'text-[#5C4A3C] hover:text-[#2D241E] hover:bg-[#EFE8DC]'
+                ? 'bg-[#3B2F25] text-white shadow-xs'
+                : 'text-[#6E6053] hover:text-[#2C241E] hover:bg-[#F5F2EB]'
             }`}
           >
             마이페이지
           </button>
         </nav>
 
-        {/* Zone 3: 1-2 primary actions */}
+        {/* Right Actions */}
         <div className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={onOpenAddModal}
-            className="flex items-center gap-1 px-3 py-1.5 text-xs sm:text-sm font-medium text-[#FAF6F0] bg-[#443327] hover:bg-[#2D221A] rounded-md transition-colors shadow-sm whitespace-nowrap"
-            title="새 옷 등록하기"
+            className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-[#3B2F25] hover:bg-[#281F17] rounded-xl transition-colors shadow-xs whitespace-nowrap"
+            title="새 옷 등록"
           >
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">옷 등록</span>
+            <Plus className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">새 옷 등록</span>
           </button>
 
           <button
             onClick={onOpenAuthModal}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-medium text-[#4A3B30] bg-[#EFE8DC] hover:bg-[#E4DBCC] rounded-md transition-colors border border-[#D8CABE] whitespace-nowrap"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#4A3B2F] bg-[#F2ECE2] hover:bg-[#EAE2D5] rounded-xl transition-colors border border-[#DDD3C5] whitespace-nowrap"
           >
-            <User className="w-4 h-4 text-[#7A6350]" />
-            <span className="max-w-[70px] sm:max-w-[100px] truncate">
+            <User className="w-3.5 h-3.5 text-[#7A6B5D]" />
+            <span className="max-w-[70px] sm:max-w-[90px] truncate">
               {user ? user.name : '로그인'}
             </span>
           </button>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { ClosetItem, DailyOutfitRecommendation, GarmentCategory, Season, UserProfile } from '../types';
-import { CloudSun, Sparkles, Filter, Search, Plus, Shirt, ArrowRight, RefreshCw, CheckCircle2, Trash2 } from 'lucide-react';
+import { ClosetItem, DailyOutfitRecommendation, UserProfile } from '../types';
+import { CloudSun, Sparkles, Plus, RefreshCw, Trash2, Edit3, Check, Paperclip } from 'lucide-react';
 
 interface SmartClosetProps {
   closetItems: ClosetItem[];
@@ -9,6 +9,7 @@ interface SmartClosetProps {
   onGoToShopping: (searchKeyword?: string) => void;
   onGoToCoordinatorWithItem: (item: ClosetItem) => void;
   onDeleteItem: (id: string) => void;
+  onUpdateItemMemo?: (id: string, newMemo: string) => void;
 }
 
 export const SmartCloset: React.FC<SmartClosetProps> = ({
@@ -18,51 +19,50 @@ export const SmartCloset: React.FC<SmartClosetProps> = ({
   onGoToShopping,
   onGoToCoordinatorWithItem,
   onDeleteItem,
+  onUpdateItemMemo,
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('전체');
-  const [selectedSeason, setSelectedSeason] = useState<string>('전체');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedItemId, setSelectedItemId] = useState<string>(closetItems[0]?.id || '');
 
-  // Daily Outfit Weather & Occasion State
+  // Memo editing state
+  const [isEditingMemo, setIsEditingMemo] = useState(false);
+  const [editedMemoText, setEditedMemoText] = useState('');
+
+  // Daily Outfit Weather & Occasion State (다이어리 날씨 플래너)
   const [weatherTemp, setWeatherTemp] = useState<number>(19);
-  const [weatherCondition, setWeatherCondition] = useState<string>('약간 쌀쌀하고 맑음');
-  const [occasion, setOccasion] = useState<string>('캠퍼스 강의 & 도서관 스터디');
+  const [weatherCondition, setWeatherCondition] = useState<string>('맑음');
+  const [occasion, setOccasion] = useState<string>('캠퍼스 강의 & 스터디');
   const [isGeneratingDaily, setIsGeneratingDaily] = useState(false);
+  const [isWeatherNoteOpen, setIsWeatherNoteOpen] = useState(false);
   const [dailyOutfit, setDailyOutfit] = useState<DailyOutfitRecommendation | null>({
-    outfitTitle: '스케치북 감성의 캠퍼스 아틀리에 룩',
-    temperatureSummary: '낮 최고 19℃로 활동하기 쾌적하며, 늦은 오후 쌀쌀한 바람을 대비한 가벼운 셔켓 레이어드 조합입니다.',
-    topItem: '릴렉스 옥스포드 코튼 셔츠 (오프화이트)',
+    outfitTitle: '캠퍼스 데일리 룩',
+    temperatureSummary: '19℃ 날씨에 편안하게 입기 좋은 셔켓 레이어드 조합',
+    topItem: '옥스포드 코튼 셔츠 (오프화이트)',
     bottomItem: '테이퍼드 생지 데님 팬츠 (인디고)',
-    outerItem: '헤비 캔버스 워크 셔켓 (카멜 베이지)',
-    shoesAndAccessories: '스웨이드 샌드 독일군 스니커즈',
-    coordinatorTip: '셔츠 소매를 1단 무심하게 걷어올리고 셔켓 단추는 오픈하여 자연스러운 실루엣을 연출하세요.',
-    synergyScore: 97,
+    outerItem: '헤비 캔버스 워크 셔켓 (카멜)',
+    shoesAndAccessories: '스웨이드 독일군 스니커즈 (샌드)',
+    coordinatorTip: '셔츠 소매를 가볍게 걷고 셔켓은 자연스럽게 걸쳐 연출해 보세요.',
   });
 
-  // Wardrobe Gap State
-  const [isAnalyzingGap, setIsAnalyzingGap] = useState(false);
-  const [gapAnalysis, setGapAnalysis] = useState<{
-    summary: string;
-    suggestedAdditions: Array<{ category: string; name: string; reason: string; matchPotentialScore: number }>;
-  } | null>({
-    summary: `현재 등록된 ${closetItems.length}벌의 옷장을 분석한 결과, 캐주얼 상의와 데님 하의의 기본기는 탄탄하지만, 일교차가 큰 계절용 니트 레이어드 피스와 포멀한 모카 슬랙스가 보강되면 코디 조합이 2.5배 늘어납니다.`,
-    suggestedAdditions: [
-      {
-        category: '상의/니트',
-        name: '소프트 메리노울 하프집업 니트 (오트밀)',
-        reason: '보유 중인 옥스포드 셔츠 위에 레이어드하거나 단독 착용하여 가을 웜톤의 따뜻함을 극대화할 수 있습니다.',
-        matchPotentialScore: 98,
-      },
-      {
-        category: '하의/슬랙스',
-        name: '원턱 세미와이드 드레이프 슬랙스 (모카 브라운)',
-        reason: '데님 중심의 하의에 차분한 브라운 슬랙스를 더해 격식 있는 자리까지 완벽 커버합니다.',
-        matchPotentialScore: 94,
-      },
-    ],
+  // Wardrobe Gap Note State (다이어리 쇼핑 플래너)
+  const [isGapNoteOpen, setIsGapNoteOpen] = useState(false);
+  const gapSuggestions = [
+    { name: '메리노울 하프집업 니트 (오트밀)', reason: '옥스포드 셔츠 위에 레이어드하기 좋은 기본템' },
+    { name: '원턱 드레이프 슬랙스 (모카 브라운)', reason: '생지 데님과 다른 단정한 실루엣 연출' },
+  ];
+
+  // Active selected item
+  const selectedItem =
+    closetItems.find((item) => item.id === selectedItemId) || closetItems[0] || null;
+
+  // Filter items for the hanger rod
+  const filteredItems = closetItems.filter((item) => {
+    return selectedCategory === '전체' || item.category === selectedCategory;
   });
 
-  // Handle Generate Daily Outfit
+  const categories: string[] = ['전체', '상의', '하의', '아우터', '신발', '악세사리'];
+
+  // Handle weather recommendation
   const handleGenerateDaily = async () => {
     setIsGeneratingDaily(true);
     try {
@@ -76,398 +76,410 @@ export const SmartCloset: React.FC<SmartClosetProps> = ({
           userProfile: user,
         }),
       });
-
       const resData = await response.json();
       if (resData.success && resData.data) {
         setDailyOutfit(resData.data);
       }
     } catch (e) {
-      console.warn('API error, using fallback:', e);
+      console.warn('API fallback:', e);
     } finally {
       setIsGeneratingDaily(false);
     }
   };
 
-  // Filter items
-  const filteredItems = closetItems.filter((item) => {
-    const matchesCategory = selectedCategory === '전체' || item.category === selectedCategory;
-    const matchesSeason =
-      selectedSeason === '전체' || item.season === '사계절' || item.season === selectedSeason;
-    const matchesSearch =
-      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.color.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (item.brand && item.brand.toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchesCategory && matchesSeason && matchesSearch;
-  });
+  const handleStartEditMemo = () => {
+    if (selectedItem) {
+      setEditedMemoText(selectedItem.memo || '');
+      setIsEditingMemo(true);
+    }
+  };
 
-  const categories: string[] = ['전체', '상의', '하의', '아우터', '신발', '악세사리'];
-  const seasons: string[] = ['전체', '봄', '여름', '가을', '겨울'];
+  const handleSaveMemo = () => {
+    if (selectedItem && onUpdateItemMemo) {
+      onUpdateItemMemo(selectedItem.id, editedMemoText);
+    }
+    setIsEditingMemo(false);
+  };
 
   return (
-    <div className="space-y-10">
-      {/* Top Hero: Atelier Sketchbook Banner */}
-      <section className="relative overflow-hidden rounded-2xl bg-[#F5EFE6] border border-[#DFCFC0] pencil-shadow p-6 sm:p-8">
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-          <div className="max-w-2xl space-y-3">
-            <div className="flex items-center gap-2 text-xs font-semibold text-[#8C6D53]">
-              <span>스마트 옷장 아카이브</span>
-              <span>·</span>
-              <span>총 {closetItems.length}벌 보관 중</span>
-              <span>·</span>
-              <span>{user.personalColor} 맞춤 분석</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-serif font-bold text-[#2A1F18] leading-snug">
-              {user.name}님의 아틀리에 옷장
-            </h1>
-            <p className="text-sm text-[#5C493B] leading-relaxed">
-              옷을 스마트폰으로 간편하게 기록하고 관리해보세요. 오늘 날씨와 하루 일정에 맞춘 인공지능 코디부터,
-              내 옷장 속 옷들과 찰떡인 쇼핑 아이템 제안까지 하나로 연결됩니다.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
+    <div className="w-full space-y-6">
+      {/* Top Header: Planner Bar with Index Tabs & Quick Tools */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* Category Index Tabs */}
+        <div className="flex items-center gap-1.5 bg-[#EFECE5] p-1.5 rounded-xl border border-[#DFD8CC] overflow-x-auto">
+          {categories.map((cat) => (
             <button
-              onClick={onOpenAddModal}
-              className="flex items-center gap-2 px-4 py-2.5 bg-[#382A21] hover:bg-[#251B15] text-[#FAF6F0] rounded-xl text-sm font-medium transition-all shadow-sm"
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
+                selectedCategory === cat
+                  ? 'bg-white text-[#2C241E] shadow-xs'
+                  : 'text-[#7D6E60] hover:text-[#2C241E]'
+              }`}
             >
-              <Plus className="w-4 h-4" />
-              <span>새 옷 등록하기</span>
+              {cat}
             </button>
-            <button
-              onClick={() => onGoToShopping()}
-              className="flex items-center gap-2 px-4 py-2.5 bg-[#EAE1D3] hover:bg-[#DDD2C2] text-[#443327] rounded-xl text-sm font-medium transition-all border border-[#CFBFAC]"
-            >
-              <span>어울리는 쇼핑 탐색</span>
-              <ArrowRight className="w-4 h-4 text-[#8C6D53]" />
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* Feature 1: Weather & Schedule Daily Outfit Recommender */}
-      <section className="bg-sketch-paper rounded-2xl border border-[#DECFC0] p-6 sm:p-8 pencil-shadow space-y-6">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-[#E8DDCE] pb-5">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#443327] text-[#FAF6F0] flex items-center justify-center shrink-0">
-              <CloudSun className="w-5 h-5 text-[#DEB887]" />
-            </div>
-            <div>
-              <h2 className="text-lg font-serif font-bold text-[#2C211A]">
-                오늘의 날씨 & 일정 맞춤 AI 코디
-              </h2>
-              <p className="text-xs text-[#6B5747]">
-                현재 옷장 데이터를 분석하여 기온과 상황에 최적화된 착장을 스케치합니다.
-              </p>
-            </div>
-          </div>
-
-          {/* Quick Context Selectors */}
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-1.5 bg-[#EFE7DA] px-3 py-1.5 rounded-lg border border-[#DFCFC0] text-xs">
-              <span className="text-[#7A6350] font-medium">기온:</span>
-              <select
-                aria-label="오늘의 기온 선택"
-                value={weatherTemp}
-                onChange={(e) => setWeatherTemp(Number(e.target.value))}
-                className="bg-transparent font-semibold text-[#2D211A] focus:outline-none cursor-pointer"
-              >
-                <option value={12}>12℃ 쌀쌀함</option>
-                <option value={15}>15℃ 선선함</option>
-                <option value={19}>19℃ 쾌적함</option>
-                <option value={24}>24℃ 포근함</option>
-                <option value={28}>28℃ 더움</option>
-              </select>
-            </div>
-
-            <div className="flex items-center gap-1.5 bg-[#EFE7DA] px-3 py-1.5 rounded-lg border border-[#DFCFC0] text-xs">
-              <span className="text-[#7A6350] font-medium">상황:</span>
-              <select
-                aria-label="오늘의 일정 및 상황 선택"
-                value={occasion}
-                onChange={(e) => setOccasion(e.target.value)}
-                className="bg-transparent font-semibold text-[#2D211A] focus:outline-none cursor-pointer max-w-[150px] truncate"
-              >
-                <option value="캠퍼스 강의 & 도서관 스터디">캠퍼스 강의/스터디</option>
-                <option value="주말 분위기 있는 데이트">주말 데이트</option>
-                <option value="팀 프로젝트 과제 발표">팀 과제 발표</option>
-                <option value="친구들과 캐주얼 모임">친구들과 약속</option>
-                <option value="단정한 인턴/알바 면접">면접/격식있는 자리</option>
-              </select>
-            </div>
-
-            <button
-              onClick={handleGenerateDaily}
-              disabled={isGeneratingDaily}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#4A3B30] hover:bg-[#34271E] text-[#FAF6F0] rounded-lg text-xs font-semibold transition-all disabled:opacity-50"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${isGeneratingDaily ? 'animate-spin' : ''}`} />
-              <span>{isGeneratingDaily ? '분석 중...' : '코디 새로고침'}</span>
-            </button>
-          </div>
+          ))}
         </div>
 
-        {dailyOutfit && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <div className="lg:col-span-8 space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-[#7C634F]">AI 추천 착장 타이틀</span>
-                <span className="text-xs font-semibold text-[#443327] bg-[#EAE0D1] px-2.5 py-0.5 rounded-full border border-[#D5C6B5]">
-                  옷장 조화율 {dailyOutfit.synergyScore}%
-                </span>
-              </div>
-              <h3 className="text-xl font-serif font-bold text-[#2A1F18]">
-                {dailyOutfit.outfitTitle}
-              </h3>
-              <p className="text-sm text-[#5C4A3C] leading-relaxed">
-                {dailyOutfit.temperatureSummary}
-              </p>
+        {/* Quick Planner Tools */}
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={() => setIsWeatherNoteOpen(!isWeatherNoteOpen)}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-[#F9F7F2] text-[#4A3B2F] rounded-xl text-xs font-semibold border border-[#E0D7CB] shadow-xs transition-colors"
+          >
+            <CloudSun className="w-3.5 h-3.5 text-[#B87D38]" />
+            <span>오늘 날씨 코디</span>
+          </button>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-                <div className="p-3 bg-[#F4EFE6] rounded-xl border border-[#DFD3C3] space-y-1">
-                  <span className="text-[11px] font-medium text-[#8C6D53]">상의 (Top)</span>
-                  <p className="text-xs font-semibold text-[#2C211A] leading-tight">
-                    {dailyOutfit.topItem}
-                  </p>
-                </div>
-                <div className="p-3 bg-[#F4EFE6] rounded-xl border border-[#DFD3C3] space-y-1">
-                  <span className="text-[11px] font-medium text-[#8C6D53]">하의 (Bottom)</span>
-                  <p className="text-xs font-semibold text-[#2C211A] leading-tight">
-                    {dailyOutfit.bottomItem}
-                  </p>
-                </div>
-                <div className="p-3 bg-[#F4EFE6] rounded-xl border border-[#DFD3C3] space-y-1">
-                  <span className="text-[11px] font-medium text-[#8C6D53]">아우터 (Outer)</span>
-                  <p className="text-xs font-semibold text-[#2C211A] leading-tight">
-                    {dailyOutfit.outerItem || '날씨에 맞게 생략'}
-                  </p>
-                </div>
-                <div className="p-3 bg-[#F4EFE6] rounded-xl border border-[#DFD3C3] space-y-1">
-                  <span className="text-[11px] font-medium text-[#8C6D53]">신발/소품</span>
-                  <p className="text-xs font-semibold text-[#2C211A] leading-tight">
-                    {dailyOutfit.shoesAndAccessories}
-                  </p>
-                </div>
-              </div>
-            </div>
+          <button
+            onClick={() => setIsGapNoteOpen(!isGapNoteOpen)}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-[#F9F7F2] text-[#4A3B2F] rounded-xl text-xs font-semibold border border-[#E0D7CB] shadow-xs transition-colors"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-[#9E733E]" />
+            <span>추천 쇼핑</span>
+          </button>
 
-            <div className="lg:col-span-4 bg-[#EDE5D8] rounded-xl p-5 border border-[#DACDBD] flex flex-col justify-between space-y-4">
-              <div className="space-y-2">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-[#443327]">
-                  <Sparkles className="w-4 h-4 text-[#A7793D]" />
-                  <span>아틀리에 스타일리스트 팁</span>
-                </div>
-                <p className="text-xs text-[#523F30] leading-relaxed">
-                  "{dailyOutfit.coordinatorTip}"
-                </p>
-              </div>
+          <button
+            onClick={onOpenAddModal}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#3B2F25] hover:bg-[#281F17] text-[#FAF8F5] rounded-xl text-xs font-semibold shadow-xs transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>새 옷 걸기</span>
+          </button>
+        </div>
+      </div>
 
-              <div className="pt-3 border-t border-[#DECFC0] flex items-center justify-between text-xs text-[#7A6350]">
-                <span>오늘 착용 시 옷장 기록 반영</span>
-                <span className="font-semibold text-[#382A21]">착용 횟수 +1</span>
+      {/* Pop-up Memo 1: Today's Weather Outfit Note */}
+      {isWeatherNoteOpen && dailyOutfit && (
+        <div className="relative planner-card p-5 max-w-xl mx-auto shadow-sm space-y-3 border border-[#E2DAD0]">
+          <div className="washi-tape" />
+          <div className="flex items-center justify-between border-b border-[#F0EAE1] pb-2 pt-1">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-sm text-[#2C241E]">오늘 날씨 코디 메모 📌</span>
+              <div className="flex items-center gap-1 text-[11px] bg-[#F4EFE6] px-2 py-0.5 rounded-md text-[#5E4C3D]">
+                <select
+                  value={weatherTemp}
+                  onChange={(e) => setWeatherTemp(Number(e.target.value))}
+                  className="bg-transparent font-medium cursor-pointer focus:outline-none"
+                >
+                  <option value={12}>12℃ 쌀쌀</option>
+                  <option value={15}>15℃ 선선</option>
+                  <option value={19}>19℃ 쾌적</option>
+                  <option value={24}>24℃ 포근</option>
+                </select>
+                <span>·</span>
+                <select
+                  value={occasion}
+                  onChange={(e) => setOccasion(e.target.value)}
+                  className="bg-transparent font-medium cursor-pointer focus:outline-none max-w-[120px] truncate"
+                >
+                  <option value="캠퍼스 강의 & 스터디">캠퍼스</option>
+                  <option value="주말 데이트">데이트</option>
+                  <option value="팀 발표">팀 발표</option>
+                  <option value="친구 약속">친구 약속</option>
+                </select>
               </div>
-            </div>
-          </div>
-        )}
-      </section>
-
-      {/* Feature 2: Smart Wardrobe Gap & Shopping Synergy Analysis */}
-      {gapAnalysis && (
-        <section className="bg-[#FAF5EC] rounded-2xl border border-[#E0D3C3] p-6 sm:p-7 pencil-shadow">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-[#E8DDCE] pb-4">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#8C6D53]">
-                  Wardrobe Analysis
-                </span>
-                <span className="text-xs bg-[#E4D7C7] text-[#443327] px-2 py-0.5 rounded font-medium">
-                  스마트 옷장 분석
-                </span>
-              </div>
-              <h2 className="text-lg font-serif font-bold text-[#2A1F18]">
-                내 옷장의 빈틈 채우기 & 쇼핑 제안
-              </h2>
             </div>
             <button
-              onClick={() => onGoToShopping()}
-              className="text-xs font-semibold text-[#443327] hover:text-[#1F150F] flex items-center gap-1 group"
+              onClick={() => setIsWeatherNoteOpen(false)}
+              className="text-[#968779] hover:text-[#2C241E] text-xs font-bold"
             >
-              <span>스마트 쇼핑 전체보기</span>
-              <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+              ✕
             </button>
           </div>
 
-          <p className="text-xs sm:text-sm text-[#5C4A3C] mt-3 mb-5 leading-relaxed">
-            {gapAnalysis.summary}
-          </p>
+          <div className="space-y-1.5 text-xs text-[#524438]">
+            <div className="font-bold text-sm text-[#2C241E]">{dailyOutfit.outfitTitle}</div>
+            <p className="text-[11px] text-[#7A6B5D]">{dailyOutfit.temperatureSummary}</p>
+            <div className="p-3 bg-[#FAF8F5] rounded-xl border border-[#ECE5DB] space-y-1">
+              <div>· 상의: <span className="font-semibold text-[#2C241E]">{dailyOutfit.topItem}</span></div>
+              <div>· 하의: <span className="font-semibold text-[#2C241E]">{dailyOutfit.bottomItem}</span></div>
+              {dailyOutfit.outerItem && (
+                <div>· 아우터: <span className="font-semibold text-[#2C241E]">{dailyOutfit.outerItem}</span></div>
+              )}
+              <div>· 신발/소품: <span className="font-semibold text-[#2C241E]">{dailyOutfit.shoesAndAccessories}</span></div>
+            </div>
+            <p className="text-[11px] text-[#695747]">"{dailyOutfit.coordinatorTip}"</p>
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {gapAnalysis.suggestedAdditions.map((item, idx) => (
-              <div
-                key={idx}
-                className="bg-white/80 rounded-xl p-4 border border-[#E3D6C5] flex items-start justify-between gap-3 hover:border-[#BFA890] transition-colors"
-              >
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-bold text-[#8C6D53]">{item.category}</span>
-                    <span className="text-[11px] text-[#3D7847] font-semibold flex items-center gap-0.5">
-                      <CheckCircle2 className="w-3 h-3" /> 매칭 잠재력 {item.matchPotentialScore}%
-                    </span>
-                  </div>
-                  <h4 className="text-sm font-bold text-[#2C211A]">{item.name}</h4>
-                  <p className="text-xs text-[#6B5747] leading-relaxed">{item.reason}</p>
+          <button
+            onClick={handleGenerateDaily}
+            disabled={isGeneratingDaily}
+            className="w-full py-1.5 bg-[#4A3B2F] hover:bg-[#34271D] text-[#FAF8F5] rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+          >
+            <RefreshCw className={`w-3 h-3 ${isGeneratingDaily ? 'animate-spin' : ''}`} />
+            <span>다른 조합 추천받기</span>
+          </button>
+        </div>
+      )}
+
+      {/* Pop-up Memo 2: Wardrobe Gap Shopping Note */}
+      {isGapNoteOpen && (
+        <div className="relative planner-card p-5 max-w-xl mx-auto shadow-sm space-y-3 border border-[#E2DAD0]">
+          <div className="washi-tape" />
+          <div className="flex items-center justify-between border-b border-[#F0EAE1] pb-2 pt-1">
+            <span className="font-bold text-sm text-[#2C241E]">옷장에 필요한 추천 아이템 🛍️</span>
+            <button
+              onClick={() => setIsGapNoteOpen(false)}
+              className="text-[#968779] hover:text-[#2C241E] text-xs font-bold"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="space-y-2 text-xs">
+            {gapSuggestions.map((gap, i) => (
+              <div key={i} className="p-2.5 bg-[#FAF8F5] rounded-xl border border-[#ECE5DB] flex items-center justify-between gap-2">
+                <div>
+                  <div className="font-bold text-xs text-[#2C241E]">{gap.name}</div>
+                  <div className="text-[11px] text-[#7A6B5D]">{gap.reason}</div>
                 </div>
                 <button
-                  onClick={() => onGoToShopping(item.name.split(' ')[1] || item.name)}
-                  className="shrink-0 px-3 py-1.5 bg-[#443327] hover:bg-[#2C2017] text-[#FAF6F0] rounded-lg text-xs font-medium transition-colors"
+                  onClick={() => onGoToShopping(gap.name.split(' ')[0])}
+                  className="px-2.5 py-1 bg-[#4A3B2F] hover:bg-[#34271D] text-[#FAF8F5] rounded-lg text-xs font-semibold shrink-0"
                 >
-                  제안 보기
+                  쇼핑하기
                 </button>
               </div>
             ))}
           </div>
-        </section>
+        </div>
       )}
 
-      {/* Feature 3: Clothing Catalog Grid */}
-      <section className="space-y-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <h2 className="text-xl font-serif font-bold text-[#2A1F18]">
-              보유 의류 목록 ({filteredItems.length}벌)
-            </h2>
-            <p className="text-xs text-[#7A6350]">
-              원하는 옷을 선택해 AI 어울림 판별이나 데일리 코디를 연계해보세요.
-            </p>
+      {/* MAIN VIEWPORT: SIDE-BY-SIDE LAYOUT (좌측: 옷걸이 행거 랙 / 우측: 다이어리 페이퍼 카드) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* LEFT COLUMN: REAL CLOTHES HANGER RACK (실제 옷걸이에 옷들이 걸려 있는 행거 랙) */}
+        <div className="lg:col-span-7 xl:col-span-8 bg-[#FAF8F4] rounded-3xl p-5 sm:p-7 border border-[#E6E0D5] shadow-xs relative min-h-[520px] flex flex-col justify-start">
+          {/* Rack Header info */}
+          <div className="flex items-center justify-between mb-3 text-xs text-[#7A6B5D]">
+            <span className="font-semibold text-[#4A3B2F]">내 행거 속 옷걸이 ({filteredItems.length}벌)</span>
+            <span>옷걸이를 클릭해 옆의 다이어리 메모를 확인하세요</span>
           </div>
 
-          {/* Search bar */}
-          <div className="relative w-full sm:w-64">
-            <Search className="w-4 h-4 text-[#8C6D53] absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="옷 이름, 색상, 브랜드 검색..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 bg-[#F5EFE6] border border-[#DFCFC0] rounded-xl text-xs text-[#2A1F18] placeholder-[#9E8B7A] focus:outline-none focus:border-[#4A3B30]"
-            />
+          {/* Clothes Rack Hanger Rod (슬림한 행거 봉) */}
+          <div className="clothes-rack-bar h-2.5 w-full rounded-full relative mb-1">
+            <div className="absolute -left-1.5 -top-1 w-3 h-4.5 bg-[#8C7F70] rounded-r-sm shadow-xs" />
+            <div className="absolute -right-1.5 -top-1 w-3 h-4.5 bg-[#8C7F70] rounded-l-sm shadow-xs" />
           </div>
-        </div>
 
-        {/* Filter Controls */}
-        <div className="flex flex-wrap items-center gap-4 text-xs">
-          <div className="flex items-center gap-1 bg-[#EFE8DC] p-1 rounded-xl border border-[#DFD3C3]">
-            {categories.map((cat) => (
+          {/* Clothing Items on Hangers (실제 옷걸이에 순차적으로 걸려 있는 옷들) */}
+          {filteredItems.length === 0 ? (
+            <div className="text-center py-20 space-y-2 text-[#8C7D6F]">
+              <p className="text-sm font-semibold">이 카테고리에는 등록된 옷이 없습니다.</p>
               <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`px-3 py-1.5 rounded-lg font-medium transition-colors whitespace-nowrap ${
-                  selectedCategory === cat
-                    ? 'bg-[#382A21] text-[#FAF6F0] shadow-sm'
-                    : 'text-[#6B5747] hover:text-[#2C211A]'
-                }`}
+                onClick={onOpenAddModal}
+                className="mt-1 px-4 py-1.5 bg-[#3B2F25] text-white rounded-xl text-xs font-semibold"
               >
-                {cat}
+                새 옷 걸기
               </button>
-            ))}
-          </div>
+            </div>
+          ) : (
+            <div className="flex items-start gap-4 sm:gap-5 overflow-x-auto pt-2 pb-5 px-2 scrollbar-thin">
+              {filteredItems.map((item) => {
+                const isSelected = item.id === selectedItem?.id;
+                return (
+                  <div
+                    key={item.id}
+                    onClick={() => {
+                      setSelectedItemId(item.id);
+                      setIsEditingMemo(false);
+                    }}
+                    className={`flex flex-col items-center cursor-pointer shrink-0 w-32 sm:w-40 select-none transition-all ${
+                      isSelected
+                        ? 'hanger-garment-selected scale-102'
+                        : 'hanger-garment-item opacity-85 hover:opacity-100 hover:scale-101'
+                    }`}
+                  >
+                    {/* Realistic Triangular Coat Hanger with Metallic Hook over Rod */}
+                    <div className="flex flex-col items-center relative z-20">
+                      {/* Metallic hook wrapped over rod */}
+                      <div className="w-3 h-4.5 border-t-2 border-r-2 border-l-2 border-[#8C7E6E] rounded-t-full -mb-1 shadow-xs" />
+                      {/* Triangular Wooden/Modern Coat Hanger Body */}
+                      <div className="w-20 sm:w-24 h-4 bg-[#C7BAA9] border border-[#DDD3C5] rounded-md shadow-xs flex items-center justify-center">
+                        <div className="w-12 h-0.5 bg-[#8A7B6B] opacity-40 rounded-full" />
+                      </div>
+                    </div>
 
-          <div className="flex items-center gap-1 bg-[#EFE8DC] p-1 rounded-xl border border-[#DFD3C3]">
-            {seasons.map((season) => (
-              <button
-                key={season}
-                onClick={() => setSelectedSeason(season)}
-                className={`px-3 py-1.5 rounded-lg font-medium transition-colors whitespace-nowrap ${
-                  selectedSeason === season
-                    ? 'bg-[#382A21] text-[#FAF6F0] shadow-sm'
-                    : 'text-[#6B5747] hover:text-[#2C211A]'
-                }`}
-              >
-                {season}
-              </button>
-            ))}
-          </div>
-        </div>
+                    {/* Clothing Sticker Card (Hanging naturally from the hanger) */}
+                    <div
+                      className={`relative w-full aspect-3/4 rounded-2xl p-2.5 flex items-center justify-center -mt-1 transition-all ${
+                        isSelected
+                          ? 'bg-white ring-2 ring-[#3B2F25] shadow-md'
+                          : 'bg-white/85 border border-[#E8E1D5] hover:bg-white shadow-xs'
+                      }`}
+                    >
+                      <img
+                        src={item.imageUrl}
+                        alt={item.name}
+                        referrerPolicy="no-referrer"
+                        className="max-h-full max-w-full object-contain filter drop-shadow-[0_4px_6px_rgba(40,30,20,0.1)]"
+                        onError={(e) => {
+                          (e.target as HTMLElement).style.display = 'none';
+                        }}
+                      />
 
-        {/* Garment Cards Grid */}
-        {filteredItems.length === 0 ? (
-          <div className="bg-[#FAF7F2] rounded-2xl border border-dashed border-[#CFBFAC] p-12 text-center space-y-3">
-            <Shirt className="w-10 h-10 text-[#8C6D53] mx-auto opacity-60" />
-            <h4 className="text-base font-serif font-bold text-[#3B2C21]">
-              조건에 맞는 옷이 없습니다
-            </h4>
-            <p className="text-xs text-[#7A6350] max-w-sm mx-auto">
-              다른 필터를 선택하시거나 사진을 찍어 새로운 옷을 스마트 옷장에 등록해보세요.
-            </p>
+                      {/* Category tag */}
+                      <div className="absolute bottom-2 left-2 bg-[#F6F2EB] border border-[#E4DDD1] px-1.5 py-0.5 rounded text-[10px] font-semibold text-[#57483B]">
+                        {item.category}
+                      </div>
+
+                      {/* Memo indicator badge */}
+                      {item.memo && (
+                        <div className="absolute top-2 right-2 text-[10px] bg-[#EFECE5] text-[#57483B] px-1.5 py-0.5 rounded font-medium shadow-2xs">
+                          메모 ✏️
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Clothing Name under the hanger */}
+                    <div className="text-center mt-2 w-full">
+                      <div
+                        className={`text-xs font-semibold truncate px-1 rounded-md transition-colors ${
+                          isSelected ? 'bg-[#3B2F25] text-white' : 'text-[#2C241E]'
+                        }`}
+                      >
+                        {item.name}
+                      </div>
+                      <div className="text-[11px] text-[#7D6E60] truncate mt-0.5">
+                        {item.color} · {item.season}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Bottom Rack Base note */}
+          <div className="mt-auto pt-4 border-t border-[#EAE3D7] flex items-center justify-between text-xs text-[#8A7B6B]">
+            <span>순차적으로 정리된 나의 옷들</span>
             <button
               onClick={onOpenAddModal}
-              className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 bg-[#443327] hover:bg-[#2C2017] text-[#FAF6F0] rounded-xl text-xs font-semibold"
+              className="text-[#3B2F25] font-semibold hover:underline flex items-center gap-1"
             >
-              <Plus className="w-4 h-4" />
-              <span>새 옷 등록하기</span>
+              <Plus className="w-3.5 h-3.5" />
+              <span>새 옷걸이에 걸기</span>
             </button>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
-            {filteredItems.map((item) => (
-              <div
-                key={item.id}
-                className="group bg-white rounded-2xl border border-[#DFD3C3] overflow-hidden pencil-shadow flex flex-col justify-between hover:border-[#9A7F66] transition-all"
-              >
-                <div>
-                  <div className="relative aspect-4/3 bg-[#F4EFE6] overflow-hidden">
-                    <img
-                      src={item.imageUrl}
-                      alt={item.name}
-                      referrerPolicy="no-referrer"
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      onError={(e) => {
-                        (e.target as HTMLElement).style.display = 'none';
-                      }}
-                    />
-                    <div className="absolute top-3 left-3 bg-[#2D211A]/80 backdrop-blur-sm text-[#FAF6F0] text-[11px] px-2.5 py-1 rounded-md font-medium">
-                      {item.category} · {item.season}
-                    </div>
-                    {item.matchingScoreWithUser && (
-                      <div className="absolute top-3 right-3 bg-[#EAD5B8] text-[#3A2A1E] text-[11px] px-2 py-0.5 rounded font-bold border border-[#C6A98A]">
-                        어울림 {item.matchingScoreWithUser}%
-                      </div>
-                    )}
-                  </div>
+        </div>
 
-                  <div className="p-5 space-y-2">
-                    <div className="flex items-center justify-between text-xs text-[#8C6D53]">
-                      <span>{item.brand || 'ATELIER COLLECTION'}</span>
-                      <span>착용 {item.wearCount}회</span>
-                    </div>
-                    <h3 className="text-base font-serif font-bold text-[#2A1F18] group-hover:text-[#684C35] transition-colors leading-snug">
-                      {item.name}
-                    </h3>
-                    <p className="text-xs text-[#6B5747] line-clamp-2 leading-relaxed">
-                      {item.notes || `${item.color} 색상의 ${item.style} 스타일 아이템입니다.`}
-                    </p>
-                  </div>
+        {/* RIGHT COLUMN: DIARY PAPER STYLE CARD (옆에 나타나는 다이어리 페이퍼 스타일 카드) */}
+        <div className="lg:col-span-5 xl:col-span-4 sticky top-24">
+          {selectedItem ? (
+            <div className="relative bg-[#FFFDF9] border border-[#E5DDD2] rounded-3xl p-6 shadow-sm space-y-4">
+              {/* Decorative Washi Tape & Paper Clip */}
+              <div className="washi-tape" />
+              <div className="absolute top-4 right-4 text-[#B5A593] flex items-center gap-1">
+                <Paperclip className="w-4 h-4 rotate-45" />
+              </div>
+
+              {/* Diary Header */}
+              <div className="pt-2 border-b border-[#F0EAE1] pb-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs bg-[#EFECE5] text-[#4A3B2F] font-semibold px-2 py-0.5 rounded-md">
+                    {selectedItem.category}
+                  </span>
+                  <span className="text-xs text-[#7A6B5D]">
+                    {selectedItem.season} · {selectedItem.style}
+                  </span>
                 </div>
-
-                <div className="p-5 pt-0 border-t border-[#F2ECE2] mt-2 flex items-center justify-between gap-2">
-                  <button
-                    onClick={() => onGoToCoordinatorWithItem(item)}
-                    className="flex-1 py-2 px-3 bg-[#EFE8DC] hover:bg-[#E2D5C3] text-[#382A21] rounded-xl text-xs font-semibold transition-colors text-center"
-                  >
-                    AI 코디 조합 분석
-                  </button>
-                  <button
-                    onClick={() => onDeleteItem(item.id)}
-                    className="p-2 text-[#A8907E] hover:text-[#A8382A] rounded-xl hover:bg-[#FBEBE8] transition-colors"
-                    title="옷장에서 삭제"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                <h3 className="text-lg font-bold text-[#2C241E]">
+                  {selectedItem.name}
+                </h3>
+                <div className="text-xs text-[#8A7B6B]">
+                  색상: {selectedItem.color} · 브랜드: {selectedItem.brand || '소장품'}
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-      </section>
+
+              {/* Garment Image Preview Inside the Diary Note */}
+              <div className="aspect-4/3 bg-white rounded-2xl border border-[#ECE5DB] p-4 flex items-center justify-center relative overflow-hidden">
+                <img
+                  src={selectedItem.imageUrl}
+                  alt={selectedItem.name}
+                  referrerPolicy="no-referrer"
+                  className="max-h-full max-w-full object-contain filter drop-shadow-[0_4px_8px_rgba(40,30,20,0.12)]"
+                />
+                <span className="absolute bottom-2.5 right-2.5 text-[10px] text-[#9A8C7E] bg-[#FAF8F5] px-1.5 py-0.5 rounded border border-[#EBE3D7]">
+                  등록일: {selectedItem.addedAt}
+                </span>
+              </div>
+
+              {/* USER'S PERSONAL DIARY MEMO (나의 코디 메모) */}
+              <div className="p-4 bg-[#FAF8F4] rounded-2xl border border-[#ECE5DB] space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-[#4A3B2F] flex items-center gap-1">
+                    <span>✏️ 나의 코디 메모</span>
+                  </span>
+                  {!isEditingMemo && onUpdateItemMemo && (
+                    <button
+                      onClick={handleStartEditMemo}
+                      className="text-xs text-[#7A6B5D] hover:text-[#2C241E] font-medium flex items-center gap-1"
+                    >
+                      <Edit3 className="w-3 h-3" />
+                      <span>메모 편집</span>
+                    </button>
+                  )}
+                </div>
+
+                {isEditingMemo ? (
+                  <div className="space-y-2">
+                    <textarea
+                      rows={3}
+                      value={editedMemoText}
+                      onChange={(e) => setEditedMemoText(e.target.value)}
+                      placeholder="이 옷에 대한 나만의 코디 팁이나 기억을 남겨보세요..."
+                      className="w-full p-2.5 bg-white border border-[#DDD5C9] rounded-xl text-xs text-[#2C241E] focus:outline-none"
+                    />
+                    <div className="flex justify-end gap-2">
+                      <button
+                        onClick={() => setIsEditingMemo(false)}
+                        className="px-2.5 py-1 text-xs text-[#7A6B5D] hover:text-[#2C241E]"
+                      >
+                        취소
+                      </button>
+                      <button
+                        onClick={handleSaveMemo}
+                        className="px-3 py-1 bg-[#3B2F25] text-white rounded-lg text-xs font-semibold flex items-center gap-1"
+                      >
+                        <Check className="w-3 h-3" />
+                        <span>저장하기</span>
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-xs text-[#3E3228] leading-relaxed">
+                    {selectedItem.memo || '작성된 코디 메모가 없습니다. [메모 편집]을 눌러 메모를 남겨보세요.'}
+                  </p>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2 pt-1">
+                <button
+                  onClick={() => onGoToCoordinatorWithItem(selectedItem)}
+                  className="flex-1 py-2.5 px-3 bg-[#3B2F25] hover:bg-[#281F17] text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors shadow-xs"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-[#E6C687]" />
+                  <span>AI 코디 조합 분석</span>
+                </button>
+                <button
+                  onClick={() => onDeleteItem(selectedItem.id)}
+                  className="p-2.5 text-[#9E8E80] hover:text-[#C24134] rounded-xl hover:bg-[#FAF4F2] transition-colors border border-[#E8E1D5]"
+                  title="옷걸이에서 삭제"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-[#FFFDF9] border border-[#E5DDD2] rounded-3xl p-8 text-center text-xs text-[#8A7B6B] space-y-2">
+              <Paperclip className="w-6 h-6 mx-auto opacity-40" />
+              <p className="font-semibold text-sm text-[#4A3B2F]">선택된 의류가 없습니다</p>
+              <p>왼쪽 행거에서 옷을 선택하면 상세 정보와 다이어리 메모가 나타납니다.</p>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

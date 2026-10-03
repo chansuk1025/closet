@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ClosetItem, FashionStyle, GarmentCategory, Season } from '../types';
-import { Upload, Camera, Sparkles, Check, X } from 'lucide-react';
+import { Upload, X } from 'lucide-react';
 
 interface AddGarmentModalProps {
   isOpen: boolean;
@@ -19,7 +19,6 @@ export const AddGarmentModal: React.FC<AddGarmentModalProps> = ({
   const [season, setSeason] = useState<Season>('사계절');
   const [style, setStyle] = useState<FashionStyle>('미니멀');
   const [brand, setBrand] = useState('');
-  const [notes, setNotes] = useState('');
   const [imageUrl, setImageUrl] = useState('/src/assets/images/wardrobe_hanger_wood_1790992705475.jpg');
 
   if (!isOpen) return null;
@@ -46,15 +45,12 @@ export const AddGarmentModal: React.FC<AddGarmentModalProps> = ({
       id: `closet-${Date.now()}`,
       name: name.trim(),
       category,
-      color: color.trim() || '내추럴',
+      color: color.trim() || '내추럴 톤',
       season,
       style,
       brand: brand.trim() || 'ATELIER PERSONAL',
       imageUrl,
       addedAt: new Date().toISOString().slice(0, 10),
-      wearCount: 0,
-      notes: notes.trim(),
-      matchingScoreWithUser: Math.floor(Math.random() * 10 + 90),
     };
 
     onAddGarment(newItem);
@@ -82,22 +78,22 @@ export const AddGarmentModal: React.FC<AddGarmentModalProps> = ({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-          {/* Photo Preview and Selector */}
+          {/* Photo Preview and Selector (Sticker format) */}
           <div className="space-y-2">
             <label className="font-bold text-[#443327] block">의류 사진</label>
             <div className="flex items-center gap-4">
-              <div className="w-20 h-20 rounded-xl bg-[#EFE8DC] border border-[#D5C6B5] overflow-hidden shrink-0">
+              <div className="w-20 h-20 rounded-xl bg-white border-2 border-white shadow-sm overflow-hidden shrink-0 flex items-center justify-center p-1">
                 <img
                   src={imageUrl}
                   alt="미리보기"
                   referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover"
+                  className="max-h-full max-w-full object-contain filter drop-shadow-xs"
                 />
               </div>
               <div className="flex-1 space-y-1.5">
                 <label className="inline-flex items-center gap-1.5 py-2 px-3 bg-[#EDE5D8] hover:bg-[#DDD2C2] text-[#443327] rounded-xl font-semibold cursor-pointer border border-[#DACDBD]">
                   <Upload className="w-3.5 h-3.5" />
-                  <span>내 사진 업로드</span>
+                  <span>사진 촬영 / 업로드</span>
                   <input
                     type="file"
                     accept="image/*"
@@ -106,7 +102,7 @@ export const AddGarmentModal: React.FC<AddGarmentModalProps> = ({
                   />
                 </label>
                 <p className="text-[11px] text-[#7A6350]">
-                  휴대폰 카메라로 촬영한 옷 사진을 바로 올릴 수 있습니다.
+                  핸드폰으로 촬영한 옷 사진을 바로 올릴 수 있습니다.
                 </p>
               </div>
             </div>
@@ -119,7 +115,7 @@ export const AddGarmentModal: React.FC<AddGarmentModalProps> = ({
               <input
                 type="text"
                 required
-                placeholder="예: 릴렉스 린넨 셔츠"
+                placeholder="예: 옥스포드 셔츠"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="w-full p-2.5 bg-white border border-[#D5C6B5] rounded-xl text-[#2A1F18]"
@@ -147,7 +143,7 @@ export const AddGarmentModal: React.FC<AddGarmentModalProps> = ({
               <label className="font-bold text-[#443327] block mb-1">색상</label>
               <input
                 type="text"
-                placeholder="예: 오트밀 베이지"
+                placeholder="예: 아이보리 화이트"
                 value={color}
                 onChange={(e) => setColor(e.target.value)}
                 className="w-full p-2.5 bg-white border border-[#D5C6B5] rounded-xl text-[#2A1F18]"
@@ -190,24 +186,12 @@ export const AddGarmentModal: React.FC<AddGarmentModalProps> = ({
               <label className="font-bold text-[#443327] block mb-1">브랜드 (선택)</label>
               <input
                 type="text"
-                placeholder="예: 무신사 스탠다드, 유니클로"
+                placeholder="예: 무신사 스탠다드"
                 value={brand}
                 onChange={(e) => setBrand(e.target.value)}
                 className="w-full p-2.5 bg-white border border-[#D5C6B5] rounded-xl text-[#2A1F18]"
               />
             </div>
-          </div>
-
-          {/* Notes */}
-          <div>
-            <label className="font-bold text-[#443327] block mb-1">코디 메모 / 특징</label>
-            <textarea
-              rows={2}
-              placeholder="예: 어깨가 살짝 드롭되어 슬랙스와 궁합이 좋음."
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="w-full p-2.5 bg-white border border-[#D5C6B5] rounded-xl text-[#2A1F18]"
-            />
           </div>
 
           {/* Submit CTA */}
@@ -221,9 +205,9 @@ export const AddGarmentModal: React.FC<AddGarmentModalProps> = ({
             </button>
             <button
               type="submit"
-              className="flex-2 py-2.5 bg-[#382A21] hover:bg-[#251B15] text-[#FAF6F0] rounded-xl font-semibold shadow-sm"
+              className="flex-2 py-2.5 bg-[#382A21] hover:bg-[#201712] text-[#FAF6F0] rounded-xl font-semibold shadow-sm"
             >
-              옷장에 보관하기
+              옷장에 스티커 등록
             </button>
           </div>
         </form>

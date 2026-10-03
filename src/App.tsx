@@ -37,12 +37,12 @@ export default function App() {
       createdAt: '2026-10-01',
       item: {
         id: 'store-1',
-        title: '소프트 메리노울 하프집업 니트 (오트밀)',
+        title: '메리노울 하프집업 니트 (오트밀)',
         brand: 'ATELIER KNITWORKS',
         price: 68000,
         image: '/src/assets/images/wardrobe_hanger_wood_1790992705475.jpg',
-        size: 'L (100-105)',
-        color: '오트밀 베이지',
+        size: 'L',
+        color: '오트밀',
       },
       quantity: 1,
       buyer: {
@@ -51,7 +51,7 @@ export default function App() {
         address: '서울특별시 마포구 와우산로 94 아틀리에 하우스 302호',
       },
       payment: {
-        method: '스마트 아틀리에 간편결제',
+        method: '아틀리에 간편결제',
         subtotal: 68000,
         platformFee: 3060,
         totalPrice: 68000,
@@ -70,28 +70,28 @@ export default function App() {
           stage: 'AI_HQ_ROUTED',
           time: '어제 14:21',
           title: 'AI 본사 전산망 직발주 접수',
-          desc: 'ATELIER KNITWORKS 본사 ERP 시스템에 자동 발주 접수 완료',
+          desc: 'ATELIER KNITWORKS 본사 ERP 자동 발주 접수',
           completed: true,
         },
         {
           stage: 'STOCK_VERIFIED',
           time: '오늘 09:30',
-          title: '본사 물류센터 재고 승인 및 패킹',
-          desc: '본사 물류 1차 검수 및 친환경 크라프트 포장 완료',
+          title: '본사 재고 승인 및 패킹',
+          desc: '본사 물류 출하 검수 완료',
           completed: true,
         },
         {
           stage: 'IN_TRANSIT',
           time: '진행 중',
-          title: '택배사 인계 (CJ대한통운 654-2918-0912)',
-          desc: '허브 터미널 간 이동 중 (내일 도착 예정)',
+          title: '택배사 인계 (CJ대한통운)',
+          desc: '배송 이동 중 (내일 도착 예정)',
           completed: false,
         },
         {
           stage: 'DELIVERED',
           time: '익일 예정',
           title: '문 앞 배송 완료',
-          desc: '배송 완료 후 스마트 옷장에 자동 등록 안내',
+          desc: '배송 완료',
           completed: false,
         },
       ],
@@ -117,18 +117,21 @@ export default function App() {
       id: `closet-${Date.now()}`,
       name: partialItem.name || '새 의류',
       category: partialItem.category || '상의',
-      color: partialItem.color || '뉴트럴',
+      color: partialItem.color || '내추럴',
       season: partialItem.season || '사계절',
       style: partialItem.style || '미니멀',
-      brand: partialItem.brand || 'ATELIER SELECTION',
+      brand: partialItem.brand || 'ATELIER PERSONAL',
       imageUrl: partialItem.imageUrl || '/src/assets/images/wardrobe_hanger_wood_1790992705475.jpg',
       addedAt: new Date().toISOString().slice(0, 10),
-      wearCount: 0,
-      notes: partialItem.notes,
-      matchingScoreWithUser: partialItem.matchingScoreWithUser || 92,
+      memo: '사진 판별 후 내 옷장에 새로 등록한 옷',
     };
     setClosetItems([fullItem, ...closetItems]);
     setActiveTab('closet');
+  };
+
+  // Update memo for an item
+  const handleUpdateItemMemo = (id: string, newMemo: string) => {
+    setClosetItems(closetItems.map((item) => (item.id === id ? { ...item, memo: newMemo } : item)));
   };
 
   // Handle Order Placement
@@ -155,8 +158,8 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F7F5EE] text-[#2D251E] flex flex-col font-sans">
-      {/* 3-Zone Top Bar Navigation */}
+    <div className="min-h-screen bg-[#F8F6F1] text-[#2C241E] flex flex-col selection:bg-[#EAE2D5] selection:text-[#2C241E]">
+      {/* Top Header */}
       <Header
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -166,8 +169,8 @@ export default function App() {
         cartCount={orders.length}
       />
 
-      {/* Main App Content Viewport */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+      {/* Main Viewport Container */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {activeTab === 'closet' && (
           <SmartCloset
             closetItems={closetItems}
@@ -176,68 +179,57 @@ export default function App() {
             onGoToShopping={handleGoToShoppingWithSearch}
             onGoToCoordinatorWithItem={handleGoToCoordinatorWithItem}
             onDeleteItem={(id) => setClosetItems(closetItems.filter((i) => i.id !== id))}
+            onUpdateItemMemo={handleUpdateItemMemo}
           />
         )}
 
         {activeTab === 'shopping' && (
-          <SmartShopping
-            storeItems={storeItems}
-            closetItems={closetItems}
-            user={user}
-            onOrderPlaced={handleOrderPlaced}
-            favorites={favorites}
-            onToggleFavorite={handleToggleFavorite}
-            initialSearch={shoppingSearchKeyword}
-          />
+          <div className="planner-card p-6 sm:p-8">
+            <SmartShopping
+              storeItems={storeItems}
+              closetItems={closetItems}
+              user={user}
+              onOrderPlaced={handleOrderPlaced}
+              favorites={favorites}
+              onToggleFavorite={handleToggleFavorite}
+              initialSearch={shoppingSearchKeyword}
+            />
+          </div>
         )}
 
         {activeTab === 'coordinator' && (
-          <FashionCoordinator
-            user={user}
-            closetItems={closetItems}
-            onAddAnalyzedGarmentToCloset={handleAddAnalyzedGarment}
-            onGoToShopping={handleGoToShoppingWithSearch}
-            preSelectedClosetItem={coordinatorPreselectedItem}
-          />
+          <div className="planner-card p-6 sm:p-8">
+            <FashionCoordinator
+              user={user}
+              closetItems={closetItems}
+              onAddAnalyzedGarmentToCloset={handleAddAnalyzedGarment}
+              onGoToShopping={handleGoToShoppingWithSearch}
+              preSelectedClosetItem={coordinatorPreselectedItem}
+            />
+          </div>
         )}
 
         {activeTab === 'mypage' && (
-          <MyPage
-            user={user}
-            onUpdateUser={setUser}
-            orders={orders}
-            favorites={favorites}
-            storeItems={storeItems}
-            closetItems={closetItems}
-            onLogout={() => setIsAuthModalOpen(true)}
-            onGoToShopping={() => setActiveTab('shopping')}
-          />
+          <div className="planner-card p-6 sm:p-8">
+            <MyPage
+              user={user}
+              onUpdateUser={setUser}
+              orders={orders}
+              favorites={favorites}
+              storeItems={storeItems}
+              closetItems={closetItems}
+              onLogout={() => setIsAuthModalOpen(true)}
+              onGoToShopping={() => setActiveTab('shopping')}
+            />
+          </div>
         )}
       </main>
 
-      {/* Subtle Sketchbook Atelier Footer */}
-      <footer className="border-t border-[#DECFC0] bg-[#F2EDE4] py-10 mt-16 text-xs text-[#7A6350]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="space-y-1 text-center md:text-left">
-            <div className="font-serif font-bold text-sm text-[#2D241E]">
-              ATELIER CLOSET (아틀리에 클로젯)
-            </div>
-            <p className="text-[11px] text-[#8C6D53]">
-              스케치북 & 우드 감성의 학생 패션 프로젝트 · 스마트 옷장, AI 코디 및 본사 직발주 쇼핑 플랫폼
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-center gap-4 text-[11px]">
-            <span>AI 직발주 엔진 가동 중</span>
-            <span>·</span>
-            <span>플랫폼 수수료율 4.5% 학생 정산</span>
-            <span>·</span>
-            <span>퍼스널컬러 & 체형 알고리즘 연동</span>
-          </div>
-
-          <div className="text-[11px] text-[#9E8B7A]">
-            © 2026 Atelier Closet Studio. All rights reserved.
-          </div>
+      {/* Clean Minimal Diary Footer */}
+      <footer className="border-t border-[#EAE3D7] bg-[#F2EDE4] py-6 text-center text-xs text-[#7A6B5D]">
+        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+          <span>closet</span>
+          <span>© 2026 closet. All rights reserved.</span>
         </div>
       </footer>
 
